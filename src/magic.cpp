@@ -2287,6 +2287,10 @@ int known_magic::select_spell( Character &guy )
 void known_magic::on_mutation_gain( const trait_id &mid, Character &guy )
 {
     for( const std::pair<const spell_id, int> &sp : mid->spells_learned ) {
+        if( !sp.first.is_valid() ) {
+            debugmsg( "Tried to learn invalid spell" );
+            continue;
+        }
         learn_spell( sp.first, guy, true );
         spell &temp_sp = get_spell( sp.first );
         for( int level = 0; level < sp.second; level++ ) {
