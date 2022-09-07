@@ -32,6 +32,7 @@
 #include "mtype.h"
 #include "mutation.h"
 #include "optional.h"
+#include "options.h"
 #include "output.h"
 #include "point.h"
 #include "proficiency.h"
@@ -796,8 +797,11 @@ void debug_menu::wishitem( Character *you, const tripoint &pos )
     std::vector<std::pair<std::string, const itype *>> opts;
     for( const itype *i : item_controller->all() ) {
         item option( i, calendar::turn_zero );
-        // Only display the generic name if it has variants
-        option.clear_itype_variant();
+
+        if( !get_option<bool>( "SHOW_GUN_VARIANTS" ) ) {
+            // Only display the generic name if it has variants
+            option.clear_itype_variant();
+        }
         opts.emplace_back( option.tname( 1, false ), i );
     }
     std::sort( opts.begin(), opts.end(), localized_compare );
