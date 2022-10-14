@@ -260,6 +260,11 @@ void talk_function::do_read( npc &p )
     p.do_npc_read();
 }
 
+void talk_function::do_read_ebook( npc &p )
+{
+    p.do_npc_read_ebook();
+}
+
 void talk_function::dismount( npc &p )
 {
     p.npc_dismount();

@@ -884,8 +884,15 @@
       {
         "text": "Please study from a book.",
         "topic": "TALK_DONE",
-        "condition": { "and": [ { "not": "npc_has_activity" }, { "not": { "npc_has_trait": "HALLUCINATION" } } ] },
+        "condition": { "and": [ { "not": "npc_has_activity" }, { "not": { "npc_has_trait": "HALLUCINATION" } } ,
+          { "not": { "npc_has_item_with_flag": "EBOOK_READER" } } ] },
         "effect": "do_read"
+      },
+      {
+        "text": "Please study from a book.",
+        "topic": "TALK_READ_BOOK",
+        "condition": { "and": [ { "not": "npc_has_activity" }, { "not": { "npc_has_trait": "HALLUCINATION" } } ,
+          { "npc_has_item_with_flag": "EBOOK_READER" } ] }
       },
       {
         "text": "Please start deconstructing any vehicles in a deconstruction zone.",
@@ -954,6 +961,25 @@
     "type": "talk_topic",
     "dynamic_line": "<hallu_dont_trade>",
     "responses": [ { "text": "Fair enough.", "topic": "TALK_NONE" } ]
+  },
+  {
+    "id": "TALK_READ_BOOK",
+    "type": "talk_topic",
+    "dynamic_line": "Sure.  Which type of books should I read?  Paper books or e-books?",
+    "responses": [
+      {
+        "text": "Please use the paper books.",
+        "topic": "TALK_DONE",
+        "effect": "do_read"
+      },
+      {
+        "text": "Please use the e-books.",
+        "condition": { "npc_has_item_with_flag": "EBOOK_READER" },
+        "topic": "TALK_DONE",
+        "effect": "do_read_ebook"
+      },
+      { "text": "Never mind.", "topic": "TALK_NONE" }
+    ]
   },
   {
     "id": "TALK_CAMP",

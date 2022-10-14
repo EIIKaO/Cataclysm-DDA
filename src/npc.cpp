@@ -117,6 +117,8 @@ static const item_group_id Item_spawn_data_survivor_stabbing( "survivor_stabbing
 
 static const json_character_flag json_flag_HYPEROPIC( "HYPEROPIC" );
 
+static const flag_id json_flag_EBOOK_READER( "EBOOK_READER" );
+
 static const mfaction_str_id monfaction_bee( "bee" );
 static const mfaction_str_id monfaction_human( "human" );
 static const mfaction_str_id monfaction_player( "player" );
@@ -1394,6 +1396,91 @@ void npc::do_npc_read()
                     ereader,
                     true,
                     getID().get_value()
+                ) ) );
+
+    } else {
+        for( const std::string &reason : fail_reasons ) {
+            say( reason );
+        }
+    }
+}
+
+void npc::do_npc_read_ebook()
+{
+    // Can read items from inventory or within one tile (including in vehicles)
+    Character *npc_player = as_character();
+    if( !npc_player ) {
+        return;
+    }
+    std::vector<item_location> ereaders;
+    for( item_location &loc : ( *this ).all_items_loc() ) {
+        if( loc.get_item() && loc.get_item()->is_ebook_storage() &&
+            !loc.get_item()->is_broken_on_active() ) {
+            ereaders.emplace_back( loc );
+        }
+    }
+
+    uilist ereader_query;
+    ereader_query.text = _( "Choose the e-book reader to using." );
+    ereader_query.desc_lines_hint = 2;
+    ereader_query.desc_enabled = true;
+    int cnt = 0;
+    for( const item_location &loc : ereaders ) {
+        const int contained_count = ( *loc ).ebooks().size();
+        const bool enable = contained_count > 0;
+        std::string desc;
+        if( contained_count == 0 ) {
+            desc = _( "This device does not include books." );
+        } else {
+            desc = string_format( _( "This device contains %d books." ), contained_count );
+        }
+        ereader_query.addentry_desc( cnt, enable, -1, ( *loc ).tname(), desc );
+        cnt ++;
+    }
+    ereader_query.query();
+    switch( ereader_query.ret ) {
+        case UILIST_CANCEL:
+            return;
+            break;
+        default:
+            break;
+    }
+    item_location ereader = item_location( *this, ereaders[ereader_query.ret].get_item() );
+
+    item_location ebook = game_menus::inv::ebookread( *npc_player, ereader );
+    if( !ebook ) {
+        add_msg( _( "Never mind." ) );
+        return;
+    }
+
+    item_location book = item_location( ebook );
+
+    std::vector<std::string> fail_reasons;
+    Character *npc_character = as_character();
+    if( !npc_character ) {
+        return;
+    }
+
+    book = book.obtain( *npc_character );
+    if( can_read( *book, fail_reasons ) ) {
+        add_msg_if_player_sees( pos(), _( "%s starts reading." ), disp_name() );
+
+        // NPCs can't read to other NPCs yet
+        const time_duration time_taken = time_to_read( *book, *this );
+        std::string ebook_id;
+        if( book ) {
+            ebook_id = book.get_item()->typeId().str();
+        }
+        // NPCs read until they gain a level
+        assign_activity(
+            player_activity(
+                read_activity_actor(
+                    to_moves<int>( time_taken ),
+                    book,
+                    ereader,
+                    true,
+                    getID().get_value(),
+                    ebook_id
                 ) ) );
 
     } else {

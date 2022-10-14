@@ -366,9 +366,9 @@ class read_activity_actor : public activity_actor
 
         explicit read_activity_actor(
             int moves, item_location &book, item_location &ereader,
-            bool continuous = false, int learner_id = -1 )
+            bool continuous = false, int learner_id = -1, std::string ebook_id = "" )
             : moves_total( moves ), book( book ), ereader( ereader ),
-              continuous( continuous ), learner_id( learner_id ) {};
+              continuous( continuous ), learner_id( learner_id ), ebook_id( ebook_id ) {};
 
         activity_id get_type() const override {
             return activity_id( "ACT_READ" );
@@ -402,6 +402,7 @@ class read_activity_actor : public activity_actor
         // Read until the learner with this ID gets a level
         bool continuous = false;
         int learner_id = -1;
+        std::string ebook_id;
 
         // Will return true if activity must be set to null
         bool player_read( avatar &you );

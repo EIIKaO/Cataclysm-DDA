@@ -1303,9 +1303,21 @@ static bool is_valid_book( const item_location &book )
 }
 
 static bool cancel_if_book_invalid(
-    player_activity &act, const item_location &book, const Character &who )
+    player_activity &act, item_location &book, const Character &who, const item_location &ereader,
+    const std::string eb_id )
 {
     if( !is_valid_book( book ) ) {
+        if( ereader ) {
+            const itype_id e_id = itype_id( eb_id );
+            if( e_id.is_valid() && !e_id.is_null() ) {
+                for( const item *it : ( *ereader ).get_contents().ebooks() ) {
+                    if( it->typeId() == e_id ) {
+                        book = item_location( const_cast<Character &>( who ), const_cast<item *>( it ) );
+                        return false;
+                    }
+                }
+            }
+        }
         who.add_msg_player_or_npc(
             _( "You no longer have the book!" ),
             _( "<npcname> no longer has the book!" ) );
@@ -1317,7 +1329,7 @@ static bool cancel_if_book_invalid(
 
 void read_activity_actor::start( player_activity &act, Character &who )
 {
-    if( cancel_if_book_invalid( act, book, who ) ) {
+    if( cancel_if_book_invalid( act, book, who, ereader, ebook_id ) ) {
         return;
     }
 
@@ -1345,7 +1357,7 @@ void read_activity_actor::start( player_activity &act, Character &who )
 
 void read_activity_actor::do_turn( player_activity &act, Character &who )
 {
-    if( cancel_if_book_invalid( act, book, who ) ) {
+    if( cancel_if_book_invalid( act, book, who, ereader, ebook_id ) ) {
         return;
     }
 
@@ -1697,7 +1709,7 @@ bool read_activity_actor::npc_read( npc &learner )
 
 void read_activity_actor::finish( player_activity &act, Character &who )
 {
-    if( cancel_if_book_invalid( act, book, who ) ) {
+    if( cancel_if_book_invalid( act, book, who, ereader, ebook_id ) ) {
         return;
     }
 
@@ -1814,13 +1826,18 @@ void read_activity_actor::serialize( JsonOut &jsout ) const
     jsout.start_object();
 
     jsout.member( "moves_total", moves_total );
+    jsout.member( "using_ereader", using_ereader );
     if( is_valid_book( book ) ) {
         jsout.member( "book", book );
     }
-    if( ereader ) {
+    if( using_ereader && ereader ) {
         jsout.member( "ereader", ereader );
+        if( book && is_valid_book( book ) ) {
+            jsout.member( "ebook_id", book.get_item()->typeId().str() );
+        } else if( !ebook_id.empty() ) {
+            jsout.member( "ebook_id", ebook_id );
+        }
     }
-    jsout.member( "using_ereader", using_ereader );
     jsout.member( "continuous", continuous );
     jsout.member( "learner_id", learner_id );
 
@@ -1833,9 +1850,10 @@ std::unique_ptr<activity_actor> read_activity_actor::deserialize( JsonValue &jsi
     JsonObject data = jsin.get_object();
 
     data.read( "moves_total", actor.moves_total );
+    data.read( "using_ereader", actor.using_ereader );
     data.read( "book", actor.book );
     data.read( "ereader", actor.ereader );
-    data.read( "using_ereader", actor.using_ereader );
+    data.read( "ebook_id", actor.ebook_id );
     data.read( "continuous", actor.continuous );
     data.read( "learner_id", actor.learner_id );
 

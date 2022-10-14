@@ -2117,5 +2117,9 @@
   {
     "id": "ELECTRONIC",
     "type": "json_flag"
+  },
+  {
+    "id": "EBOOK_READER",
+    "type": "json_flag"
   }
 ]
