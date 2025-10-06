@@ -267,7 +267,7 @@
         "group": "GODCO_russell_carried",
         "rigid": true,
         "condition": { "math": [ "n_NEVER == 1" ] },
-        "refusal": "<npcname> will never sell this"
+        "refusal": "<npc_name> will never sell this"
       }
     ],
     "traits": [
